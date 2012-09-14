@@ -1,0 +1,8 @@
+*.pyc
+.settings
+/.project
+/.pydevproject
+/*.tmproj
+tmp
+/log
+
