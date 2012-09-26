@@ -1,0 +1,11 @@
+README.txt
+tims_django_utils/__init__.py
+tims_django_utils/colored_test_output.py
+tims_django_utils/git_utility.py
+tims_django_utils/model_serialization_utils.py
+tims_django_utils/model_utils.py
+tims_django_utils/test_utils.py
+tims_django_utils.egg-info/PKG-INFO
+tims_django_utils.egg-info/SOURCES.txt
+tims_django_utils.egg-info/dependency_links.txt
+tims_django_utils.egg-info/top_level.txt
