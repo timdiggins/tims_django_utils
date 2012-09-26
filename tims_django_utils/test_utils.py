@@ -38,7 +38,7 @@ from django.conf import settings
 from django.core import management
 from django.test.simple import DjangoTestSuiteRunner
 
-from . import colored_test_output #@UnusedImport
+from tims_django_utils import colored_test_output #@UnusedImport
            
 class DjangoTestRunner(unittest.TextTestRunner):
 
@@ -336,7 +336,8 @@ class PageTestCase(DjangoTestCase, SelectAssertionTestCase):
         self.last_response = self.client.get(path, data, follow, **kwargs)
         self.check_last_response(follow, expected_status, msg="%sget '%s'" % (msg and "%s\n" % msg or '', path))
         return self.last_response
-
+    visit = get
+    
     def post(self, path, data={}, content_type=MULTIPART_CONTENT, follow=False, expected_status=None, msg=None, **kwargs):
         if expected_status is None:
             if follow:
@@ -347,9 +348,16 @@ class PageTestCase(DjangoTestCase, SelectAssertionTestCase):
         self.last_response = self.client.post(path, data, content_type=content_type, follow=follow, **kwargs)
         self.check_last_response(follow, expected_status, msg=msg)
         return self.last_response
-        
+    
+    @property
+    def view_test_errors_in_browser(self):
+        try:
+            return bool(settings.VIEW_TEST_ERRORS_IN_BROWSER)
+        except AttributeError:
+            return False
+    
     def view(self, indicator='test-view', as_error=False):
-        if not settings.VIEW_TEST_ERRORS_IN_BROWSER:
+        if not self.view_test_errors_in_browser:
             print "not showing test error"
             return
         if not hasattr(self, "last_response"):
