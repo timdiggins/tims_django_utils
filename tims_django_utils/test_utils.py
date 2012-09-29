@@ -295,14 +295,31 @@ class EmailTestCase(DjangoTestCase):
     def tearDown(self):
         settings.INSTALLED_APPS = self.old_installed_apps
 
+RELATIVIZING_RE = re.compile(r"""(src|href)=(['"])/%s/""" % _get_static_url_root())
+
+viewed_in_browser = []
+
+def view_in_browser(content, verbose=False, indicator='test-view'):
+    global viewed_in_browser
+    if indicator in viewed_in_browser:
+        print "Not viewing in browser -- already viewed"
+        return
+    if not len(content.strip()): return
+    viewed_in_browser.append(indicator)
+    html = RELATIVIZING_RE.sub(r"""\1=\2""", content)
+    view_file = os.path.join(_file_root_for_viewing(), 'tmp.%s.html' % indicator)
+    if verbose:
+        print "WRITING", view_file
+    with open(view_file, 'w') as f:
+        f.write(html)
+    furl = "file://%s" % os.path.abspath(view_file)
+    webbrowser.open(furl)      
+    
 class PageTestCase(DjangoTestCase, SelectAssertionTestCase):
     """a version of TestCase that allows for useful viewing of content, and selection by tag
     """    
 
     verbose = False
-    RELATIVIZING_RE = re.compile(r"""(src|href)=(['"])/%s/""" % _get_static_url_root())
-    __viewed = []
-    __viewed_errors = []
 
     def setUp(self):
         super(PageTestCase, self).setUp()
@@ -365,22 +382,8 @@ class PageTestCase(DjangoTestCase, SelectAssertionTestCase):
         if not self.last_response: 
             if as_error: return
             raise Exception("no response got yet!")
-        if as_error:
-            indicator = "error%s" % (len(self.__viewed_errors)+1,)
-            self.__viewed_errors.append(indicator)
-        elif indicator in self.__viewed:
-            print "Not viewing in browser -- already viewed"
-            return
-        if not len(self.last_response.content.strip()): return
-        self.__viewed.append(self.__viewed)
-        html = self.RELATIVIZING_RE.sub(r"""\1=\2""", self.last_response.content)
-        view_file = os.path.join(_file_root_for_viewing(), '.tmp.%s.html' % indicator)
-        if self.verbose:
-            print "WRITING", view_file
-        with open(view_file, 'w') as f:
-            f.write(html)
-        furl = "file://%s" % os.path.abspath(view_file)
-        webbrowser.open(furl)            
+        
+        view_in_browser(self.last_response.content, indicator=indicator, verbose=self.verbose)
             
     def failureException(self, *args, **kwargs):
         self.view(as_error=True)
